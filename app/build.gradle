@@ -78,107 +78,104 @@ def giteeUsername = localProperties.getProperty("gpr.user")
 def giteePassword = localProperties.getProperty("gpr.key")
 
 // 安全获取GitHub凭证
-def getGithubCredentials = {
-    if (!giteeUsername || !giteePassword) {
-        throw new GradleException("GitHub 凭证未配置！创建访问令牌：https://github.com/settings/tokens")
-    }
-    return [
-            username: giteeUsername,
-            password: giteePassword
-    ]
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                groupId = 'com.github.portconnect'  // 替换为你的GitHub用户名
-                artifactId = project.name
-                version = android.defaultConfig.versionName + '-SNAPSHOT'
-
-                // 使用新版API指定发布组件
-                from components.findByName('release')
-
-                // POM元数据配置
-                pom {
-                    name = project.name
-                    description = 'Android Library published to GitHub Maven'
-                    url = 'https://github.com/zeezer/AndroidMaven'
-
-                    licenses {
-                        license {
-                            name = 'The Apache License, Version 2.0'
-                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id = 'zeezer'
-                            name = 'zeezer'
-                            email = '1157833606@qq.com'
-                        }
-                    }
-
-                    scm {
-                        connection = 'scm:git:git://github.com/zeezer/AndroidMaven.git'
-                        developerConnection = 'scm:git:ssh://github.com/zeezer/AndroidMaven.git'
-                        url = 'https://github.com/zeezer/AndroidMaven'
-                    }
-                }
-            }
-        }
-
-        repositories {
-            // GitHub Maven仓库配置
-            maven {
-                name = "AndroidMaven"
-                url = uri("https://maven.pkg.github.com/zeezer/AndroidMaven")
-                credentials {
-                    username = getGithubCredentials().username
-                    password = getGithubCredentials().password
-                }
-            }
-        }
-    }
-
-    tasks.named("generatePomFileForReleasePublication") {
-        doLast {
-            def pomFile = file("$buildDir/publications/release/pom-default.xml")
-            def pom = new XmlSlurper().parse(pomFile)
-
-            // 清除自动生成的空依赖
-            pom.dependencies.replaceNode {}
-
-            // 添加实际依赖
-            def depsNode = pom.appendNode('dependencies')
-
-            configurations.implementation.allDependencies.each { dep ->
-                if (dep.group != null && dep.version != null) {
-                    def depNode = depsNode.appendNode('dependency')
-                    depNode.appendNode('groupId', dep.group)
-                    depNode.appendNode('artifactId', dep.name)
-                    depNode.appendNode('version', dep.version)
-                    depNode.appendNode('scope', 'runtime')
-                }
-            }
-
-            configurations.api.allDependencies.each { dep ->
-                if (dep.group != null && dep.version != null) {
-                    def depNode = depsNode.appendNode('dependency')
-                    depNode.appendNode('groupId', dep.group)
-                    depNode.appendNode('artifactId', dep.name)
-                    depNode.appendNode('version', dep.version)
-                    depNode.appendNode('scope', 'compile')
-                }
-            }
-
-            // 保存修改
-            def printer = new XmlNodePrinter(new PrintWriter(pomFile))
-            printer.print(pom)
-        }
-    }
-}
+//def getGithubCredentials = {
+//    return [
+//            username: giteeUsername,
+//            password: giteePassword
+//    ]
+//}
+//
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                groupId = 'com.github.portconnect'  // 替换为你的GitHub用户名
+//                artifactId = project.name
+//                version = android.defaultConfig.versionName + '-SNAPSHOT'
+//
+//                // 使用新版API指定发布组件
+//                from components.findByName('release')
+//
+//                // POM元数据配置
+//                pom {
+//                    name = project.name
+//                    description = 'Android Library published to GitHub Maven'
+//                    url = 'https://github.com/zeezer/AndroidMaven'
+//
+//                    licenses {
+//                        license {
+//                            name = 'The Apache License, Version 2.0'
+//                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                        }
+//                    }
+//
+//                    developers {
+//                        developer {
+//                            id = 'zeezer'
+//                            name = 'zeezer'
+//                            email = '1157833606@qq.com'
+//                        }
+//                    }
+//
+//                    scm {
+//                        connection = 'scm:git:git://github.com/zeezer/AndroidMaven.git'
+//                        developerConnection = 'scm:git:ssh://github.com/zeezer/AndroidMaven.git'
+//                        url = 'https://github.com/zeezer/AndroidMaven'
+//                    }
+//                }
+//            }
+//        }
+//
+//        repositories {
+//            // GitHub Maven仓库配置
+//            maven {
+//                name = "AndroidMaven"
+//                url = uri("https://maven.pkg.github.com/zeezer/AndroidMaven")
+//                credentials {
+//                    username = getGithubCredentials().username
+//                    password = getGithubCredentials().password
+//                }
+//            }
+//        }
+//    }
+//
+//    tasks.named("generatePomFileForReleasePublication") {
+//        doLast {
+//            def pomFile = file("$buildDir/publications/release/pom-default.xml")
+//            def pom = new XmlSlurper().parse(pomFile)
+//
+//            // 清除自动生成的空依赖
+//            pom.dependencies.replaceNode {}
+//
+//            // 添加实际依赖
+//            def depsNode = pom.appendNode('dependencies')
+//
+//            configurations.implementation.allDependencies.each { dep ->
+//                if (dep.group != null && dep.version != null) {
+//                    def depNode = depsNode.appendNode('dependency')
+//                    depNode.appendNode('groupId', dep.group)
+//                    depNode.appendNode('artifactId', dep.name)
+//                    depNode.appendNode('version', dep.version)
+//                    depNode.appendNode('scope', 'runtime')
+//                }
+//            }
+//
+//            configurations.api.allDependencies.each { dep ->
+//                if (dep.group != null && dep.version != null) {
+//                    def depNode = depsNode.appendNode('dependency')
+//                    depNode.appendNode('groupId', dep.group)
+//                    depNode.appendNode('artifactId', dep.name)
+//                    depNode.appendNode('version', dep.version)
+//                    depNode.appendNode('scope', 'compile')
+//                }
+//            }
+//
+//            // 保存修改
+//            def printer = new XmlNodePrinter(new PrintWriter(pomFile))
+//            printer.print(pom)
+//        }
+//    }
+//}
 
 
 //// 安全读取凭证
@@ -269,4 +266,19 @@ dependencies {
 //    implementation libs.androidx.ui.graphics
 //    implementation libs.androidx.ui.tooling.preview
 //    implementation libs.androidx.material3
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            // 注：这里设置的groupId和artifactId和version等，在JitPack编译的时候不会用到，会被替换成 `com.github.User:Repo:Tag` 这样的样式
+            groupId = 'com.zeezer'
+            artifactId = 'PortConnect'
+            version = '1.0.0'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }
